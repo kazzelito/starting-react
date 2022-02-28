@@ -1,31 +1,13 @@
 // import logo from "./logo.svg";
-import PropTypes from "prop-types";
+
 import "./App.css";
-import pokemon from "./pokemon.json";
 import React from "react";
-import { tab } from "@testing-library/user-event/dist/tab";
+import { PokemonRow } from "./PokemonRow";
+import { PokemonInfo } from "./PokemonInfo";
+import styled from "@emotion/styled";
+import { Button } from "@material-ui/core";
 
-const PokemonRow = ({ pokemon, onSelect }) => (
-  <tr>
-    <td>{pokemon.name.english}</td>
-    <td>{pokemon.type.join(", ")}</td>
-    <td>
-      <button onClick={() => onSelect(pokemon)}>Select!</button>
-    </td>
-  </tr>
-);
-
-PokemonRow.propTypes = {
-  pokemon: PropTypes.shape({
-    name: PropTypes.shape({
-      english: PropTypes.string.isRequired,
-    }),
-    type: PropTypes.arrayOf(PropTypes.string.isRequired),
-  }),
-  onSelect: PropTypes.func,
-};
-
-function getEachKey(key, base) {
+export function getEachKey(key, base) {
   return (
     <tr key={key}>
       <td>{key}</td>
@@ -34,63 +16,58 @@ function getEachKey(key, base) {
   );
 }
 
-const PokemonInfo = ({ name, base }) => (
-  <div>
-    <h1>{name.english}</h1>
-    <table>
-      <thead>
-        <tr>
-          <th>Stats name</th>
-          <th>Value</th>
-        </tr>
-      </thead>
-      <tbody>{Object.keys(base).map((key) => getEachKey(key, base))}</tbody>
-    </table>
-  </div>
-);
-
-PokemonInfo.propTypes = {
-  name: PropTypes.shape({
-    english: PropTypes.string,
-  }),
-  base: PropTypes.shape({
-    HP: PropTypes.number.isRequired,
-    Attack: PropTypes.number.isRequired,
-    Defense: PropTypes.number.isRequired,
-    "Sp. Attack": PropTypes.number.isRequired,
-    "Sp. Defense": PropTypes.number.isRequired,
-    Speed: PropTypes.number.isRequired,
-  }),
-};
-
 function App() {
   const [filter, filterSet] = React.useState("");
   const [selectedItem, selectedItemSet] = React.useState(null);
+  const [pokemon, pokemonSet] = React.useState([]);
+
+  React.useEffect(() => {
+    fetch("http://localhost:3000/starting-react/pokemon.json")
+      .then((resp) => resp.json())
+      .then((data) => pokemonSet(data));
+  }, []);
 
   function pokemonChanged(evt) {
-    console.log(evt.target.value);
+    //console.log(evt.target.value);
     filterSet(evt.target.value);
   }
+  function focusLost(evt) {
+    console.log(evt);
+  }
+
+  const Title = styled.h1`
+    text-aligned: center;
+    color: blue;
+  `;
+  const TwoColumnLayout = styled.div`
+    display: grid;
+    grid-template-columns: 70% 30%;
+    grid-column-gap: 1rem;
+  `;
+
+  const Container = styled.div`
+    margin: auto;
+    width: 800px;
+    paddingtop: 1rem;
+  `;
+
+  const Input = styled.input`
+    width: 80%;
+    font-size: x-large;
+    padding: 0.2rem;
+    background-color: gray;
+  `;
 
   return (
-    <div
-      style={{
-        margin: "auto",
-        width: 800,
-        paddingTop: "1rem",
-      }}
-    >
-      <h1 className="title">Pokemon search</h1>
-
-      <input value={filter} onInput={pokemonChanged} />
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "70% 30%",
-          gridColumnGap: "1rem",
-        }}
-      >
+    <Container>
+      <Title>Pokemon search</Title>
+      <TwoColumnLayout>
         <div>
+          <Input
+            type="text"
+            value={filter}
+            onChange={(evt) => filterSet(evt.target.value)}
+          />
           <table width="100%">
             <thead>
               <tr>
@@ -117,8 +94,8 @@ function App() {
           </table>
         </div>
         {selectedItem && <PokemonInfo {...selectedItem} />}
-      </div>
-    </div>
+      </TwoColumnLayout>
+    </Container>
   );
 }
 
